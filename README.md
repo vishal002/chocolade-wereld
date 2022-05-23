@@ -30,3 +30,9 @@ data required in below format:
 }
 
 command: `mock-json-server mock-server/data.json --port=3000`
+
+## App Snapsorts
+
+![Home Page](https://github.com/vishal002/redux-counter-app/blob/master/img/home.jpg?raw=true) 
+![Details Page](https://github.com/vishal002/redux-counter-app/blob/master/img/profile.jpg?raw=true) 
+<br/><br/>
