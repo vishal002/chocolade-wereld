@@ -3,7 +3,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
 import { ChocolateService } from 'src/app/services/chocolate.service';
-import {MatDialog, MAT_DIALOG_DATA} from '@angular/material/dialog';
+import { MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ChocolateDetailsComponent } from 'src/app/chocolate-details/chocolate-details/chocolate-details.component';
 
 export interface ChocolateData {
@@ -28,6 +28,8 @@ export class ChocolateOverviewComponent implements OnInit {
   @ViewChild(MatPaginator) paginator: MatPaginator;
   @ViewChild(MatSort) sort: MatSort;
 
+  loadResponse: boolean = false;
+
   constructor(private service: ChocolateService, public dialog: MatDialog) { }
 
   ngOnInit(): void {
@@ -35,16 +37,17 @@ export class ChocolateOverviewComponent implements OnInit {
   }
 
   getAllChocolates() {
+    this.loadResponse = true;
     this.service.getAllChocolates().subscribe(data => {
       const response = data.data[0].data;
       const updatedResponse = response.map(item => {
-        const { pricePer100G, shop, link} = this.getLowestPriceAndOtherDetails(item.prices);
+        const { pricePer100G, shop, link } = this.service.getLowestPriceAndOtherDetails(item.prices);
         return {
           id: item.id,
           brand: item.brand,
           name: item.name,
           lowestPrice: Math.round(pricePer100G * 100) / 100,
-          averagePrice: Math.round(this.getAveragePrice(item.prices) * 100) / 100,
+          averagePrice: Math.round(this.service.getAveragePrice(item.prices) * 100) / 100,
           shopName: shop,
           shopLink: link,
           currency: item.currency,
@@ -57,31 +60,10 @@ export class ChocolateOverviewComponent implements OnInit {
 
       this.dataSource.paginator = this.paginator;
       this.dataSource.sort = this.sort;
+      this.loadResponse = false;
+    }, error => {
+      this.loadResponse = false;
     });
-  }
-
-  getLowestPriceAndOtherDetails(priceArr) {
-    if (priceArr.length === 0) {
-      return {pricePer100G: 0, shop: '', link: ''}
-    }
-    const finalArr = priceArr.map(item => {
-      return {
-        pricePer100G: 100 * (item.unit === 'g' ? item.price / item.amount : item.price / (item.amount * 1000)),
-         ...item
-      }
-    });
-    finalArr.sort((a,b) => a.pricePer100G - b.pricePer100G);
-    return finalArr[0];
-  }
-
-  getAveragePrice(priceArr) {
-    if (priceArr.length === 0) {
-      return 0
-    }
-    const finalArr = priceArr.map(item => {
-      return 100 * (item.unit === 'g' ? item.price / item.amount : item.price / (item.amount * 1000))
-    })
-    return finalArr.reduce((a, b) => (a + b) / finalArr.length);
   }
 
   applyFilter(event: Event) {
